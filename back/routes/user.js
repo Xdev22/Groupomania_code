@@ -9,13 +9,13 @@ const userCtrl = require("../controllers/user");
 //AUTH
 router.post("/auth/signup", authCtrl.signup);
 router.post("/auth/login", authCtrl.login);
-router.get("/auth/logout", authCtrl.logout);
+router.get("/auth/logout", auth, authCtrl.logout);
 
 //User
-router.get("/", userCtrl.getAllUsers);
-router.get("/:id", userCtrl.getOneUserInfo);
-router.put("/:id", userCtrl.modifyOneUserInfo);
-router.delete("/:id", userCtrl.deleteOneUser);
-router.post("/follow/:id", userCtrl.follow);
+router.get("/", auth, userCtrl.getAllUsers);
+router.get("/:id", auth, userCtrl.getOneUserInfo);
+router.put("/:id", auth, userCtrl.modifyOneUserInfo);
+router.delete("/:id", auth, userCtrl.deleteOneUser);
+router.post("/follow/:id", auth, userCtrl.follow);
 
 module.exports = router;

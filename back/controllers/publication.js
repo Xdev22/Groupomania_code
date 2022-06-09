@@ -1,6 +1,6 @@
 const Publication = require("../models/publication");
 const User = require("../models/user");
-const objectId = require("mongoose").Types.ObjectId;
+const ObjectId = require("mongoose").Types.ObjectId;
 
 //--------------------------CRUD PUBLICATION-------------------------------
 
@@ -28,21 +28,37 @@ exports.createPublication = (req, res, next) => {
 };
 
 exports.findOnePublication = (req, res, next) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res
+      .status(404)
+      .json({ message: `User not found ! ID unknow : ${req.params.id}` });
+  }
   Publication.findOne({ _id: req.params.id })
     .then((publication) => res.status(200).json(publication))
     .catch((error) => res.status(404).json({ error }));
 };
 
 exports.modifyPublication = (req, res, next) => {
+  //Si l'id de l'url ne correspond pas à un ObjectId de la base de donnée
+  if (!ObjectId.isValid(req.params.id)) {
+    return res
+      .status(404)
+      .json({ message: `User not found ! ID unknow : ${req.params.id}` });
+  }
   Publication.updateOne(
     { _id: req.params.id },
-    { ...req.body, _id: req.params.id }
+    { $set: { message: req.body.message } }
   )
     .then(() => res.status(200).json({ message: "Publication updated !" }))
     .catch((error) => res.status(500).json({ error }));
 };
 
 exports.deleteOnePublication = (req, res, next) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res
+      .status(404)
+      .json({ message: `User not found ! ID unknow : ${req.params.id}` });
+  }
   Publication.deleteOne({ _id: req.params.id })
     .then(() => res.status(200).json({ message: "Publication deleted !" }))
     .catch((error) => res.status(400).json({ error }));
@@ -50,6 +66,11 @@ exports.deleteOnePublication = (req, res, next) => {
 
 //-------------------------LIKE---------------------------
 exports.likePublication = (req, res, next) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res
+      .status(404)
+      .json({ message: `User not found ! ID unknow : ${req.params.id}` });
+  }
   Publication.findOne({ _id: req.params.id })
     .then((object) => {
       //Gerer le like=1

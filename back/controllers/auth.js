@@ -47,16 +47,17 @@ exports.login = (req, res, next) => {
           if (!valid) {
             return res.status(401).json({ message: "Password Wrong!" });
           } else {
-            token = req.cookies.jwt;
+            const token = createToken(user._id);
+            console.log(user._id);
             res.cookie("jwt", token, { httpOnly: true });
             res.status(200).json({
               userId: user._id,
             });
           }
         })
-        .catch((error) => res.status(500).json({ error }));
+        .catch((error) => res.status(500).json(error.message));
     })
-    .catch((error) => res.status(500).json({ error }));
+    .catch((error) => res.status(500).json(error.message));
 };
 
 exports.logout = (req, res, next) => {

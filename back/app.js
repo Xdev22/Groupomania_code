@@ -7,6 +7,9 @@ app.use(express.json());
 const morgan = require("morgan");
 app.use(morgan("dev"));
 
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+
 //Mongoose
 const mongoose = require("./db/db");
 
