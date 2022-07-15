@@ -3,8 +3,8 @@ const mongoose = require("../db/db");
 const commentSchema = mongoose.Schema({
   userId: { type: String, required: true },
   publicationId: { type: String, required: true },
-  userName: { type: String, required: true },
-  text: { type: String, required: false },
+  userName: { type: String, required: false },
+  message: { type: String, required: false },
   imageUrl: { type: String, required: false },
   likes: { type: Number, default: 0 },
   dislikes: { type: Number, default: 0 },

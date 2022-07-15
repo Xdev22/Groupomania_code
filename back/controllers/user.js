@@ -1,7 +1,7 @@
 const User = require("../models/user");
 const ObjectId = require("mongoose").Types.ObjectId;
 const bcrypt = require("bcrypt");
-const user = require("../models/user");
+const jwt = require("jsonwebtoken");
 
 exports.getAllUsers = (req, res, next) => {
   //Select permet de selectionner un element de la recherche
@@ -32,39 +32,49 @@ exports.modifyOneUserInfo = (req, res, next) => {
     return res
       .status(404)
       .json({ message: `UserId: ${req.params.id} not found ! ` });
-  } else if (!req.body.password) {
-    User.updateOne(
-      { _id: req.params.id },
-      {
-        $set: {
-          email: req.body.email,
-          bio: req.body.bio,
-          picture: req.body.picture,
-        },
-      }
-    )
-      .then(() => res.status(200).json({ message: "User modified1 !" }))
-      .catch((error) => res.status(500).json({ error }));
-  } else {
-    bcrypt
-      .hash(req.body.password, 10)
-      .then((hash) => {
-        User.updateOne(
-          { _id: req.params.id },
-          {
-            $set: {
-              email: req.body.email,
-              password: hash,
-              picture: req.body.picture,
-              bio: req.body.bio,
-            },
-          }
-        )
-          .then(() => res.status(200).json({ message: "User modified2 !" }))
-          .catch((error) => res.status(500).json({ error }));
-      })
-      .catch((error) => res.status(500).json({ error }));
   }
+  //recherche de l'utilisateur pour verifié si il est le propietaire du compte
+
+  User.findOne({ _id: req.params.id })
+    .then((user) => {
+      if (user && user.id === req.auth.userId) {
+        if (!req.body.password) {
+          User.updateOne(
+            { _id: req.params.id },
+            {
+              email: req.body.email,
+              bio: req.body.bio,
+              // picture: "../client/public/uploads/" + req.file.filename,
+            }
+          )
+            .then(() => res.status(200).json({ message: "User modified !" }))
+            .catch((error) => res.status(500).json({ error }));
+        } else {
+          bcrypt
+            .hash(req.body.password, 10)
+            .then((hash) => {
+              User.updateOne(
+                { _id: req.params.id },
+                {
+                  $set: {
+                    email: req.body.email,
+                    password: hash,
+                    bio: req.body.bio,
+                  },
+                }
+              )
+                .then(() =>
+                  res.status(200).json({ message: "User modified !" })
+                )
+                .catch((error) => res.status(500).json({ error }));
+            })
+            .catch((error) => res.status(500).json({ error }));
+        }
+      } else {
+        return res.status(401).json({ message: "Not allowed!" });
+      }
+    })
+    .catch((error) => res.status(500).json({ error }));
 };
 
 exports.deleteOneUser = (req, res, next) => {
@@ -73,13 +83,20 @@ exports.deleteOneUser = (req, res, next) => {
       .status(404)
       .json({ message: `UserId: ${req.params.id} not found ! ` });
   }
+
   User.findOne({ _id: req.params.id })
     .then((user) => {
-      User.deleteOne({ _id: req.params.id })
-        .then(() =>
-          res.status(200).json({ message: `UserId ${req.params.id} deleted !` })
-        )
-        .catch((error) => res.status(400).json({ error }));
+      if (user && user.id === req.auth.userId) {
+        User.deleteOne({ _id: req.params.id })
+          .then(() =>
+            res
+              .status(200)
+              .json({ message: `UserId ${req.params.id} deleted !` })
+          )
+          .catch((error) => res.status(400).json({ error }));
+      } else {
+        return res.status(401).json({ message: "Not allowed!" });
+      }
     })
     .catch((error) => res.status(500).json({ error }));
 };

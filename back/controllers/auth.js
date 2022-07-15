@@ -9,8 +9,10 @@ const createToken = (id) => {
 };
 
 exports.signup = (req, res, next) => {
-  if (req.body.password < 8 || req.body.password > 1024) {
-    res.status(409).json({ error });
+  if (req.body.password.length < 8 || req.body.password.length > 1024) {
+    res.status(409).json({
+      message: "Le mot de passe doit contenir entre 8 et 100 caractères",
+    });
   } else {
     bcrypt
       .hash(req.body.password, 10)
@@ -20,16 +22,11 @@ exports.signup = (req, res, next) => {
           password: hash,
         });
 
-        user
-          .save()
-          .then((user) => {
-            res
-              .status(201)
-              .json({ message: `User created ! UserId: ${user._id}` });
-          })
-          .catch((error) => {
-            return res.status(400).json({ error });
-          });
+        user.save().then((user) => {
+          res
+            .status(201)
+            .json({ message: `User created ! UserId: ${user._id}` });
+        });
       })
       .catch((error) => res.status(500).json({ error }));
   }

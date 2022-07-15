@@ -1,55 +1,141 @@
-const Comment = require("../models/comment");
 const Publication = require("../models/publication");
+const User = require("../models/user");
+const ObjectId = require("mongoose").Types.ObjectId;
+const mongoose = require("mongoose");
+
+//Fonction qui verifie si l'user est admin.
+
+let isAdmin = (req) => {
+  return User.findOne({ _id: req.auth.userId })
+    .then((user) => {
+      console.log("userIsAdmin");
+      console.log(user.admin);
+      return user.admin;
+    })
+    .catch((error) => {
+      console.log("error fonction isAdmin");
+      console.log(error);
+    });
+};
 
 //--------------------------CRUD COMMENT-------------------------------
 
-exports.findAllComment = (req, res, next) => {
-  console.log(req.body);
-  if (req.body.publicationId === req.params.id) {
-    Comment.find()
-      .then((comments) => res.status(200).json(comments))
-      .catch((error) => res.status(400).json({ error }));
-  } else {
-    res.status(404).json({ message: "reger not found !" });
-  }
-};
-
 exports.createComment = (req, res, next) => {
-  const comment = new Comment({
-    ...req.body,
-  });
-  if (req.body.publicationId === req.params.id) {
-    comment
-      .save()
-      .then(() => res.status(201).json({ message: "Comment created !" }))
-      .catch((error) => res.status(400).json({ error }));
-  } else {
-    console.log("--------------------");
-    console.log(req.body);
-    console.log("--------------------");
-    console.log(req.params.id);
-    res.status(404).json({ message: "Publication not found !" });
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ message: `Publication not found !` });
   }
 
-  //   console.log("---------------------");
-  //   console.log();
+  User.findOne({ _id: req.auth.userId })
+    .then((user) => {
+      Publication.updateOne(
+        { _id: req.params.id },
+
+        {
+          $push: {
+            comments: [
+              {
+                userId: req.auth.userId,
+                userName: `${user.lastName} ${user.firstName}`,
+                comment: req.body.comment,
+                timestamps: Date.now(),
+              },
+            ],
+          },
+        }
+      )
+        .then(() =>
+          res.status(201).json({ message: "Publication commented !" })
+        )
+        .catch((error) => res.status(400).json({ error }));
+    })
+    .catch((error) => res.status(500).json({ error }));
 };
 
-exports.findOneComment = (req, res, next) => {
-  console.log(req.params.id);
-  Comment.findOne({ _id: req.params.id })
-    .then((comment) => res.status(200).json(comment))
-    .catch((error) => res.status(404).json({ error }));
+exports.findAllComments = (req, res) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ message: `comment not found !` });
+  }
+
+  Publication.find({ _id: req.params.id })
+    .then((publication) => {
+      let comments = publication[0].comments;
+      console.log(comments);
+      res.status(200).json(comments);
+    })
+    .catch((error) => res.status(400).json({ error }));
 };
 
-// exports.modifyPublication = (req, res, next) => {
-//   Publication.updateOne(
-//     { _id: req.params.id },
-//     { ...req.body, _id: req.params.id }
-//   )
-//     .then(() => res.status(200).json({ message: "Publication updated !" }))
-//     .catch((error) => res.status(500).json({ error }));
-// };
+exports.findOneComment = (req, res) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ message: `comment not found !` });
+  }
+
+  Publication.find(
+    { _id: req.params.id },
+
+    { comments: { $elemMatch: { _id: req.body.commentId } } }
+  )
+    .then((commentsArray) => {
+      let comment = commentsArray[0].comments[0];
+      console.log(commentsArray[0].comments[0]);
+      res.status(200).json(comment);
+    })
+    .catch((error) => res.status(400).json({ error }));
+};
+
+exports.deleteOneComment = (req, res, next) => {
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.status(404).json({ message: `comment not found !` });
+  }
+  console.log("req.auth.userId");
+  console.log(req.auth.userId);
+
+  Publication.findOne(
+    { _id: req.params.id },
+    { comments: { $elemMatch: { _id: req.body.commentId } } }
+  )
+    .then((commentsArray) => {
+      let commentUserId = commentsArray.comments[0].userId;
+      console.log("commentUserId");
+      console.log(commentUserId);
+      let userAdmin = isAdmin(req);
+      userAdmin.then((isAdmin) => {
+        if (commentUserId === req.auth.userId || isAdmin) {
+          Publication.updateOne(
+            { _id: req.params.id },
+            { $pull: { comments: { _id: req.body.commentId } } }
+          )
+            .then(() => res.status(200).json({ message: "Comment deleted !" }))
+            .catch((error) => res.status(400).json({ error }));
+        } else {
+          return res.status(401).json({ message: "Not allowed!" });
+        }
+      });
+    })
+    .catch((error) => res.status(400).json({ error }));
+
+  // Publication.findOne({ _id: req.params.id })
+  //   .then((publication) => {
+  //     // let commentUserId = commentsArray[0].comments[0];
+  //     // let userAdmin = isAdmin(req);
+  //     console.log(publication.comments);
+  //     // userAdmin
+  //     //   .then((isAdmin) => {
+  //     //     if (commentUserId === req.auth.userId || isAdmin) {
+  //     //       Publication.updateOne(
+  //     //         { _id: req.params.id },
+  //     //         { $pull: { comments: { _id: req.body.commentId } } }
+  //     //       )
+  //     //         .then(() =>
+  //     //           res.status(200).json({ message: "Comment deleted !" })
+  //     //         )
+  //     //         .catch((error) => res.status(400).json({ error }));
+  //     //     }
+  //     //   })
+  //     //   .catch(res.status(401).json({ message: "Not allowed!" }));
+  //   })
+  //   .catch((error) => res.status(404).json({ error }));
+};
 
 // exports.deleteOnePublication = (req, res, next) => {
 //   Publication.deleteOne({ _id: req.params.id })

@@ -29,7 +29,11 @@ const userSchema = mongoose.Schema(
       validate: [isEmail],
     },
     password: { type: String, required: true, minlength: 8, maxlength: 1024 },
-    picture: { type: String, default: "./uploads/profil/random-user" },
+    admin: { type: Boolean, default: false },
+    picture: {
+      type: String,
+      default: "../client/public/uploads/random-user.png",
+    },
     bio: { type: String, maxlength: 1024 },
     followers: { type: [String] },
     following: { type: [String] },

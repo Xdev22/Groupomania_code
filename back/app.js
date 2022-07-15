@@ -2,10 +2,12 @@ const express = require("express");
 const app = express();
 //Extraire le corps json des req
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 //loggeur de requête http
 const morgan = require("morgan");
 app.use(morgan("dev"));
+const path = require("path");
 
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
@@ -31,9 +33,14 @@ app.use((req, res, next) => {
 const userRoutes = require("./routes/user");
 const publicationRoutes = require("./routes/publication");
 const commentRoutes = require("./routes/comment");
+app.use(
+  "/client/public/uploads",
+  express.static(path.join(__dirname, "uploads"))
+);
 
 app.use("/api/user", userRoutes);
-app.use("/api/publication", publicationRoutes);
+app.use("/api/publication", publicationRoutes, commentRoutes);
+
 // app.use("/api/publication/:id/comments", publicationRoutes);
 
 module.exports = app;
