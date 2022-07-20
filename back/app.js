@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+const cors = require("cors");
+
 //Extraire le corps json des req
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -16,18 +18,15 @@ app.use(cookieParser());
 const mongoose = require("./db/db");
 
 //Réglage de la sécurité CORS
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content, Accept, Content-Type, Authorization"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-  );
-  next();
-});
+const corsOptions = {
+  origin: "http://localhost:3001",
+  credentials: true,
+  allowedHeaders: ["sessionId", "Content-Type"],
+  exposedHeaders: ["sessionId"],
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  preflightContinue: false,
+};
+app.use(cors(corsOptions));
 
 //importation des routes
 const userRoutes = require("./routes/user");
