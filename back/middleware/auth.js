@@ -20,7 +20,7 @@ module.exports = (req, res, next) => {
         if (user.id === userId) {
           next();
         } else {
-          throw "Not allowed!";
+          throw "Non autorisé !";
         }
       })
       .catch((error) => res.status(404).json({ error }));

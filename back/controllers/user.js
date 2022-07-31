@@ -21,7 +21,7 @@ exports.getOneUserInfo = (req, res, next) => {
     User.find({ _id: req.params.id })
       .select("-password")
       .then((user) => {
-        console.log(user), res.status(200).json(user);
+        console.log(user[0]), res.status(200).json(user[0]);
       })
       .catch((error) => res.status(404).json({ error }));
   }
@@ -44,7 +44,7 @@ exports.modifyOneUserInfo = (req, res, next) => {
             {
               email: req.body.email,
               bio: req.body.bio,
-              // picture: "../client/public/uploads/" + req.file.filename,
+              picture: "../client/public/uploads/" + req.file.filename,
             }
           )
             .then(() => res.status(200).json({ message: "User modified !" }))

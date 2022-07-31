@@ -15,6 +15,9 @@ router.post("/auth/signup", authCtrl.signup);
 router.post("/auth/login", authCtrl.login);
 router.get("/auth/logout", auth, authCtrl.logout);
 
+//verifTokken
+router.get("/jwt", auth, authCtrl.verifTokken);
+
 //User
 router.get("/", auth, userCtrl.getAllUsers);
 router.get("/:id", auth, userCtrl.getOneUserInfo);

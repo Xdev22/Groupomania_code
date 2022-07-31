@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
   //Destination du fichier
   destination: (req, file, callback) => {
     //images : nom du dossier de destination
-    callback(null, "client/public/uploads");
+    callback(null, `${__dirname}/../client/public/uploads`);
   },
   //Gérer le nom du fichier
   filename: (req, file, callback) => {

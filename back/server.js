@@ -9,5 +9,5 @@ const dotenv = require("dotenv");
 const result = dotenv.config();
 
 const server = http.createServer(app);
-app.listen(process.env.PORT || 3000);
+app.listen(process.env.PORT || 5000);
 app.set("port", process.env.PORT);

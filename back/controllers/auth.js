@@ -11,7 +11,7 @@ const createToken = (id) => {
 exports.signup = (req, res, next) => {
   if (req.body.password.length < 8 || req.body.password.length > 1024) {
     res.status(409).json({
-      message: "Le mot de passe doit contenir entre 8 et 100 caractères",
+      message: "Le mot de passe doit contenir au minimum 8 caractères",
     });
   } else {
     bcrypt
@@ -22,11 +22,25 @@ exports.signup = (req, res, next) => {
           password: hash,
         });
 
-        user.save().then((user) => {
-          res
-            .status(201)
-            .json({ message: `User created ! UserId: ${user._id}` });
-        });
+        user
+          .save()
+          .then((user) => {
+            //On retourne le cookie afin d'authentifier la personne
+            const token = createToken(user.id);
+            res.cookie("jwt", token, { httpOnly: true });
+            res
+              .status(201)
+              .json({ message: `User created ! UserId: ${user._id}` });
+          })
+          .catch((err) => {
+            if (user) {
+              return res.status(409).json({
+                message: "Un compte existe avec cette adresse mail",
+              });
+            } else {
+              return res.status(400).json({ error });
+            }
+          });
       })
       .catch((error) => res.status(500).json({ error }));
   }
@@ -44,11 +58,11 @@ exports.login = (req, res, next) => {
           if (!valid) {
             return res
               .status(401)
-              .json({ message: "Mot de passe incorrecte!" });
+              .json({ message: "Mot de passe incorrecte !" });
           } else {
             const token = createToken(user.id);
             console.log(user.id);
-            res.cookie("jwt", token, { httpOnly: true, domain: "'" });
+            res.cookie("jwt", token, { httpOnly: true });
             res.status(200).json({
               userId: user.id,
             });
@@ -59,7 +73,17 @@ exports.login = (req, res, next) => {
     .catch((error) => res.status(500).json(error.message));
 };
 
+exports.verifTokken = (req, res) => {
+  if (req.auth.userId) {
+    res.status(200).json(req.auth.userId);
+  } else {
+    throw "No token";
+  }
+};
+
 exports.logout = (req, res, next) => {
+  // res.clearCookie("jwt");
   res.cookie("jwt", "", { maxAge: 1 });
-  res.redirect("/");
+  res.status(200).json("c");
+  res.redirect = "/profil";
 };

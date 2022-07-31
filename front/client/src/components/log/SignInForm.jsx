@@ -3,6 +3,10 @@ import axios from "axios";
 import { useState } from "react";
 
 const SignInForm = () => {
+  //pour renvoyer l'user id a app
+  // const [uid, setUid] = useState(null);
+  // console.log(uid);
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -13,37 +17,47 @@ const SignInForm = () => {
     setForm({ ...form, [name]: value });
   };
 
-  const handleLoginSubmit = (evt) => {
+  const handleLoginSubmit = async (evt) => {
     evt.preventDefault();
     let emailError = document.querySelector(".email.error");
     let passwordError = document.querySelector(".password.error");
 
-    axios({
+    await axios({
       method: "post",
       url: `http://localhost:3000/api/user/auth/login`,
-
+      withCredentials: true,
       data: {
         email: form.email,
         password: form.password,
       },
     })
       .then((res) => {
+        if (res) {
+          emailError.innerHTML = "";
+          passwordError.innerHTML = "";
+        }
+
+        window.location = "/";
         console.log(res);
-        // window.location = "/";
       })
+
+      // window.location = "/";
       .catch((err) => {
-        const error = err.response.data.message;
+        let error = err.response.data.message;
 
         if (error.includes("mail")) {
-          emailError.innerHTML = err.response.data.message;
-          console.log("email");
+          emailError.innerHTML = error;
+          console.log(error);
         } else if (!error.includes("mail")) {
           emailError.innerHTML = "";
-        } else if (error.includes("Mot de passe")) {
-          passwordError.innerHTML = err.response.data.message;
+        }
+
+        if (error.includes("Mot de passe")) {
+          passwordError.innerHTML = error;
         } else if (!error.includes("Mot de passe")) {
           passwordError.innerHTML = "";
         }
+
         console.log(err);
       });
   };

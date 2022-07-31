@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const auth = require("./middleware/auth");
 
 //Extraire le corps json des req
 app.use(express.json());
@@ -33,7 +34,7 @@ const userRoutes = require("./routes/user");
 const publicationRoutes = require("./routes/publication");
 const commentRoutes = require("./routes/comment");
 app.use(
-  "/client/public/uploads",
+  `${__dirname}/../client/public/uploads`,
   express.static(path.join(__dirname, "uploads"))
 );
 
