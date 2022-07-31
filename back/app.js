@@ -33,10 +33,7 @@ app.use(cors(corsOptions));
 const userRoutes = require("./routes/user");
 const publicationRoutes = require("./routes/publication");
 const commentRoutes = require("./routes/comment");
-app.use(
-  `${__dirname}/../client/public/uploads`,
-  express.static(path.join(__dirname, "uploads"))
-);
+app.use(`/client`, express.static(path.join(__dirname, "client")));
 
 app.use("/api/user", userRoutes);
 app.use("/api/publication", publicationRoutes, commentRoutes);

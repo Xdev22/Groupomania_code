@@ -32,7 +32,7 @@ const userSchema = mongoose.Schema(
     admin: { type: Boolean, default: false },
     picture: {
       type: String,
-      default: "../client/public/uploads/random-user.png",
+      default: `http://localhost:3000/client/public/uploads/random-user.png`,
     },
     bio: { type: String, maxlength: 1024 },
     followers: { type: [String] },

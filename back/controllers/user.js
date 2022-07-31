@@ -38,16 +38,51 @@ exports.modifyOneUserInfo = (req, res, next) => {
   User.findOne({ _id: req.params.id })
     .then((user) => {
       if (user && user.id === req.auth.userId) {
-        if (!req.body.password) {
+        if (!req.body.password && !req.file) {
           User.updateOne(
             { _id: req.params.id },
             {
               email: req.body.email,
               bio: req.body.bio,
-              picture: "../client/public/uploads/" + req.file.filename,
             }
           )
             .then(() => res.status(200).json({ message: "User modified !" }))
+            .catch((error) => res.status(500).json({ error }));
+        } else if (!req.body.password && req.file) {
+          User.updateOne(
+            { _id: req.params.id },
+            {
+              email: req.body.email,
+              bio: req.body.bio,
+              picture: `${req.protocol}://${req.get(
+                "host"
+              )}/client/public/uploads/${req.file.filename}`,
+            }
+          )
+            .then(() => res.status(200).json({ message: "User modified !" }))
+            .catch((error) => res.status(500).json({ error }));
+        } else if (req.body.password && req.file) {
+          bcrypt
+            .hash(req.body.password, 10)
+            .then((hash) => {
+              User.updateOne(
+                { _id: req.params.id },
+                {
+                  $set: {
+                    email: req.body.email,
+                    password: hash,
+                    bio: req.body.bio,
+                    picture: `${req.protocol}://${req.get(
+                      "host"
+                    )}/client/public/uploads/${req.file.filename}`,
+                  },
+                }
+              )
+                .then(() =>
+                  res.status(200).json({ message: "User modified !" })
+                )
+                .catch((error) => res.status(500).json({ error }));
+            })
             .catch((error) => res.status(500).json({ error }));
         } else {
           bcrypt
